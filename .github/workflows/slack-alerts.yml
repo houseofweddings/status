@@ -1,0 +1,47 @@
+# Formatted Slack alerts for incidents — see .github/scripts/slack-alert.mjs. Upptime opens and
+# closes its issues with GH_PAT, which (unlike the built-in token) does trigger workflows.
+# Not an Upptime-generated file, so its template updates leave it alone.
+name: Slack alerts
+
+on:
+  issues:
+    types: [opened, reopened, closed]
+  issue_comment:
+    types: [created]
+  # Re-send the message for an existing incident, e.g. to test a change to the format.
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Incident (issue) number
+        required: true
+      action:
+        description: Which message
+        type: choice
+        options: [opened, closed]
+        default: opened
+
+permissions:
+  issues: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Build the event for a manual re-send
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/${{ github.repository }}/issues/${{ inputs.issue }} | jq '{issue: .}' > "$RUNNER_TEMP/event.json"
+          echo "GITHUB_EVENT_PATH=$RUNNER_TEMP/event.json" >> "$GITHUB_ENV"
+          echo "EVENT_ACTION=${{ inputs.action }}" >> "$GITHUB_ENV"
+      - name: Send
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.NOTIFICATION_SLACK_WEBHOOK_URL }}
+        run: node .github/scripts/slack-alert.mjs
