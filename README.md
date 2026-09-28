@@ -31,3 +31,25 @@ https://status.houseofweddings.ai.
 
 The page reads `data-source` / `data-issues` on `<html>` if set, so a preview can point it at
 sample files instead of GitHub.
+
+## Posting an incident
+
+For something the checks cannot see (slow sign-in, a broken payment), open an issue here with
+the `status` label plus the service's label (`website`, `partner-portal`, `admin`,
+`api-and-database`). The page shows it straight away and turns the banner yellow.
+
+Post each update as a **comment**, starting with its phase — the page shows the newest one:
+
+    **Investigating:** some couples see a slow sign-in.
+    **Identified:** a slow response from our sign-in provider; switching to a backup.
+    **Monitoring:** sign-in is fast again; we are keeping an eye on it.
+    **Resolved:** fixed for everyone.
+
+Dutch and French phase words work too (`Onderzoek loopt`, `Oorzaak gevonden`, `Opgelost`,
+`Enquête en cours`, `Résolu`…). Close the issue when it is over. The text is shown as written,
+so write it for couples and partners. Issues are public and notify watchers of this repo.
+
+## Previewing states
+
+`?preview=investigating`, `?preview=outage` and `?preview=resolved` render built-in sample
+data (with a notice saying so) instead of the real status — nothing is fetched or created.

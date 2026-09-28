@@ -11,22 +11,29 @@ repo: status
 # — the same rule the deploy smoke test in how-platform's ci.yml is waiting on.
 # Upptime forwards a secret to the checks only if its name appears as `$NAME` in this file, so
 # the repository secret must be named exactly SMOKE_TEST_TOKEN.
+# `slug` is pinned: it names the history file and the issue label, so renaming a site must
+# not change it. The page shows its own translated name per slug, not `name`, which Upptime
+# only uses in its (English) issue titles.
 sites:
-  - name: Website
+  - name: Website & planning tools
+    slug: website
     url: https://houseofweddings.ai/nl
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
-  - name: Partner portal
+  - name: PRO Collective
+    slug: partner-portal
     url: https://partner.houseofweddings.ai/login
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
-  - name: Admin
+  - name: Internal tools
+    slug: admin
     url: https://admin.houseofweddings.ai/login
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   # 200 when the app can reach Postgres, 503 when it cannot. A page can be served from cache while
   # the database is gone; this cannot.
-  - name: API & database
+  - name: Core services
+    slug: api-and-database
     url: https://houseofweddings.ai/api/health
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'

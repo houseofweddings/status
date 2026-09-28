@@ -12,14 +12,38 @@
   var ISSUES = document.documentElement.dataset.issues || 'https://api.github.com/repos/' + REPO + '/issues?labels=status&state=all&per_page=10'
   var DAYS = 90
   var REFRESH_MS = 60 * 1000
+  // GitHub allows 60 unauthenticated API calls an hour per visitor. The status files are raw
+  // downloads and do not count; issues and comments do, so they refresh on a slower clock.
+  var ISSUES_EVERY_MS = 5 * 60 * 1000
+  var PREVIEWS = ['investigating', 'outage', 'resolved']
+  var PREVIEW = (function () {
+    var p = new URLSearchParams(location.search).get('preview')
+    return PREVIEWS.indexOf(p) >= 0 ? p : null
+  })()
 
   var LOCALES = { nl: 'nl-BE', fr: 'fr-BE', en: 'en-BE' }
   var T = {
     nl: {
       dark: 'Donkere modus',
+      names: {
+        website: 'Website & planningstools',
+        'partner-portal': 'PRO Collective',
+        admin: 'Interne tools',
+        'api-and-database': 'Kerndiensten',
+      },
+      autoDown: '{name}: onbereikbaar',
+      autoSlow: '{name}: traag',
+      phase: {
+        investigating: 'Onderzoek loopt',
+        identified: 'Oorzaak gevonden',
+        monitoring: 'We volgen het op',
+        resolved: 'Opgelost',
+        update: 'Update',
+      },
+      preview: 'Voorbeeld: dit is niet de echte status.',
       label: 'Status',
       title: 'Hoe gaat het met House of Weddings?',
-      intro: 'De website, het partnerportaal en de admin, elke vijf minuten gecontroleerd.',
+      intro: 'Alle diensten van House of Weddings, elke vijf minuten gecontroleerd.',
       loading: 'Status ophalen…',
       services: 'Diensten',
       incidents: 'Recente incidenten',
@@ -49,9 +73,25 @@
     },
     fr: {
       dark: 'Mode sombre',
+      names: {
+        website: 'Site web & outils de planification',
+        'partner-portal': 'PRO Collective',
+        admin: 'Outils internes',
+        'api-and-database': 'Services principaux',
+      },
+      autoDown: '{name} : injoignable',
+      autoSlow: '{name} : lent',
+      phase: {
+        investigating: 'Enquête en cours',
+        identified: 'Cause identifiée',
+        monitoring: 'Sous surveillance',
+        resolved: 'Résolu',
+        update: 'Mise à jour',
+      },
+      preview: 'Aperçu : ce n’est pas le statut réel.',
       label: 'Statut',
       title: 'Comment va House of Weddings ?',
-      intro: 'Le site, le portail partenaires et l’admin, vérifiés toutes les cinq minutes.',
+      intro: 'Tous les services de House of Weddings, vérifiés toutes les cinq minutes.',
       loading: 'Récupération du statut…',
       services: 'Services',
       incidents: 'Incidents récents',
@@ -81,9 +121,25 @@
     },
     en: {
       dark: 'Dark mode',
+      names: {
+        website: 'Website & planning tools',
+        'partner-portal': 'PRO Collective',
+        admin: 'Internal tools',
+        'api-and-database': 'Core services',
+      },
+      autoDown: '{name}: unreachable',
+      autoSlow: '{name}: slow',
+      phase: {
+        investigating: 'Investigating',
+        identified: 'Identified',
+        monitoring: 'Monitoring',
+        resolved: 'Resolved',
+        update: 'Update',
+      },
+      preview: 'Preview: this is not the real status.',
       label: 'Status',
       title: 'How is House of Weddings doing?',
-      intro: 'The website, the partner portal and the admin, checked every five minutes.',
+      intro: 'Every House of Weddings service, checked every five minutes.',
       loading: 'Fetching status…',
       services: 'Services',
       incidents: 'Recent incidents',
@@ -134,6 +190,69 @@
     var span = document.createElement('span')
     span.innerHTML = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + '</svg>'
     return span.firstChild
+  }
+
+  function serviceName(slug, fallback) {
+    return (T[lang].names || {})[slug] || fallback
+  }
+
+  // Upptime opens and closes its own issues with a technical body ("In [`abc1234`](…), Website
+  // was down: HTTP code 403…"). Those get a translated title and no text; an incident a person
+  // opened is shown as they wrote it.
+  function isAutomatic(i) {
+    return /^In \[`[0-9a-f]{7,}`\]/.test(i.body || '')
+  }
+  function serviceOf(i) {
+    var names = (i.labels || []).map(function (l) { return typeof l === 'string' ? l : l.name })
+    for (var k in SERVICE_LOOK) if (names.indexOf(k) >= 0) return k
+    return null
+  }
+  function incidentTitle(i) {
+    var slug = serviceOf(i)
+    if (isAutomatic(i) && slug) {
+      return t(/degraded/i.test(i.title) ? 'autoSlow' : 'autoDown', { name: serviceName(slug, slug) })
+    }
+    return i.title.replace(/^[^\p{L}\p{N}]+\s*/u, '')
+  }
+
+  // An update is the newest comment, or the issue text when there is none. Starting it with
+  // "Investigating:", "Identified:", "Monitoring:" or "Resolved:" (or the Dutch or French word)
+  // sets its label; anything else reads as a plain update.
+  var PHASE_WORDS = [
+    [/^(investigating|onderzoek loopt|onderzoek|enquête en cours|enquête)/i, 'investigating'],
+    [/^(identified|oorzaak gevonden|geïdentificeerd|cause identifiée|identifiée?)/i, 'identified'],
+    [/^(monitoring|we volgen het op|opvolging|sous surveillance|surveillance)/i, 'monitoring'],
+    [/^(resolved|opgelost|résolue?)/i, 'resolved'],
+    [/^(update|mise à jour)/i, 'update'],
+  ]
+  function plainText(md) {
+    return String(md || '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/^\s{0,3}(#{1,6}|>)\s*/gm, '')
+      .replace(/(\*\*|__|`)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+  }
+  function latestUpdate(i) {
+    if (isAutomatic(i)) return null
+    var comments = i._comments || []
+    var last = comments[comments.length - 1]
+    var text = plainText(last ? last.body : i.body)
+    if (!text) return null
+    var phase = 'update'
+    for (var n = 0; n < PHASE_WORDS.length; n++) {
+      var m = PHASE_WORDS[n][0].exec(text)
+      if (m) {
+        phase = PHASE_WORDS[n][1]
+        text = text.slice(m[0].length).replace(/^\s*[:\-—–]\s*/, '')
+        break
+      }
+    }
+    text = text.charAt(0).toUpperCase() + text.slice(1)
+    if (text.length > 280) text = text.slice(0, 279).replace(/\s+\S*$/, '') + '…'
+    return { phase: phase, text: text, at: last ? last.created_at : i.created_at }
   }
 
   var lang = pickLang()
@@ -225,18 +344,106 @@
                 .catch(function () { return s })
             }),
           ),
-          fetch(ISSUES)
-            .then(function (r) { return r.ok ? r.json() : [] })
-            .catch(function () { return [] }), // rate-limited or offline: the services still render
+          loadIncidents(),
         ])
       })
       .then(function (res) {
-        data = { sites: res[0], incidents: res[1].filter(function (i) { return !i.pull_request }) }
+        data = { sites: res[0], incidents: res[1] }
         render()
       })
       .catch(function () {
         if (!data) renderError()
       })
+  }
+
+  var issuesAt = 0
+  var issuesCache = []
+  var commentsCache = {} // issue number → { updated_at, comments }
+  function loadIncidents() {
+    if (Date.now() - issuesAt < ISSUES_EVERY_MS) return Promise.resolve(issuesCache)
+    return fetch(ISSUES)
+      .then(function (r) { return r.ok ? r.json() : null })
+      .then(function (list) {
+        if (!list) return issuesCache // rate-limited: keep what we had
+        list = list.filter(function (i) { return !i.pull_request })
+        // Comments only for the incidents people wrote, only the newest few, and only when the
+        // issue changed since we last looked — each fetch is one of the visitor's 60 an hour.
+        return Promise.all(
+          list.map(function (i, n) {
+            if (n >= 5 || isAutomatic(i) || !i.comments) return i
+            var hit = commentsCache[i.number]
+            if (hit && hit.updated_at === i.updated_at) return Object.assign(i, { _comments: hit.comments })
+            return fetch(i.comments_url + '?per_page=100')
+              .then(function (r) { return r.ok ? r.json() : [] })
+              .then(function (c) {
+                commentsCache[i.number] = { updated_at: i.updated_at, comments: c }
+                return Object.assign(i, { _comments: c })
+              })
+              .catch(function () { return i })
+          }),
+        ).then(function (withComments) {
+          issuesAt = Date.now()
+          issuesCache = withComments
+          return withComments
+        })
+      })
+      .catch(function () { return issuesCache }) // offline: the services still render
+  }
+
+  // ?preview=investigating | outage | resolved — sample data, so each state can be seen on the
+  // real page without opening a real (public, notifying) issue. Nothing is fetched.
+  function previewData(kind) {
+    var now = Date.now()
+    var ago = function (min) { return new Date(now - min * 60000).toISOString() }
+    var day = function (n) { return new Date(now - n * 86400000).toISOString().slice(0, 10) }
+    var down = kind === 'outage' ? 'api-and-database' : null
+    var sites = Object.keys(SERVICE_LOOK).map(function (slug, n) {
+      var dm = {}
+      dm[day(23)] = 4
+      if (n === 0) dm[day(51)] = 95
+      if (slug === down) dm[day(0)] = 18
+      return {
+        name: slug, slug: slug, status: slug === down ? 'down' : 'up',
+        uptime: '99.94%', uptimeDay: slug === down ? '98.75%' : '100.00%', uptimeWeek: '99.98%',
+        uptimeMonth: '99.96%', uptimeYear: '99.94%',
+        time: 240 + n * 40, timeDay: 230 + n * 40, timeWeek: 235 + n * 40, timeMonth: 240 + n * 40, timeYear: 250 + n * 40,
+        dailyMinutesDown: dm, startTime: new Date(now - 120 * 86400000).toISOString(), lastUpdated: ago(2),
+      }
+    })
+    var auto = function (slug, open, startMin, endMin) {
+      return {
+        number: 900 + startMin, state: open ? 'open' : 'closed', html_url: '#', labels: ['status', slug],
+        title: '🛑 ' + slug + ' is down', body: 'In [`abc1234`](#), ' + slug + ' was **down**: HTTP code 503',
+        created_at: ago(startMin), closed_at: open ? null : ago(endMin), comments: 1,
+      }
+    }
+    var manual = {
+      number: 42, html_url: '#', labels: ['status', 'website'],
+      title: 'Slower sign-in for some couples', body: 'Investigating: some couples see a slow sign-in.',
+      created_at: ago(kind === 'resolved' ? 185 : 34),
+    }
+    var incidents = []
+    if (kind === 'investigating') {
+      incidents.push(Object.assign({}, manual, {
+        state: 'open', closed_at: null,
+        _comments: [
+          { created_at: ago(34), body: '**Investigating:** some couples see a spinner for up to 20 seconds when signing in. Planning tools work once you are in.' },
+          { created_at: ago(12), body: '**Identified:** a slow response from our sign-in provider. We are switching traffic to a backup and expect sign-in to be quick again within 15 minutes.' },
+        ],
+      }))
+    }
+    if (kind === 'outage') incidents.push(auto('api-and-database', true, 18))
+    if (kind === 'resolved') {
+      incidents.push(Object.assign({}, manual, {
+        state: 'closed', closed_at: ago(120),
+        _comments: [
+          { created_at: ago(150), body: '**Identified:** a slow response from our sign-in provider.' },
+          { created_at: ago(120), body: '**Resolved:** sign-in is quick again for everyone. Nothing was lost; sorry for the wait.' },
+        ],
+      }))
+    }
+    incidents.push(auto('website', false, 51 * 1440, 51 * 1440 - 95))
+    return { sites: sites, incidents: incidents }
   }
 
   function overallState(sites) {
@@ -253,11 +460,22 @@
     var sites = data.sites
     var o = overallState(sites)
     var overall = document.getElementById('overall')
+    var latest = sites.map(function (s) { return s.lastUpdated }).filter(Boolean).sort().pop()
+    var text = t(o[1])
+    var meta = latest ? t('checked', { t: fmtRelative(latest) }) : ''
+    // The checks can all pass while something is still wrong (slow sign-in, a broken payment).
+    // An open incident then says so, instead of the banner claiming everything works.
+    var open = data.incidents.filter(function (i) { return i.state === 'open' })[0]
+    if (open && o[0] === 'up') {
+      var u = latestUpdate(open)
+      o = ['degraded']
+      text = incidentTitle(open)
+      meta = (u ? T[lang].phase[u.phase] + ' · ' : '') + t('ongoing', { t: fmtRelative(open.created_at) })
+    }
     overall.dataset.state = o[0]
     document.getElementById('overall-icon').replaceChildren(icon(o[0] === 'up' ? 'check' : 'alert'))
-    document.getElementById('overall-text').textContent = t(o[1])
-    var latest = sites.map(function (s) { return s.lastUpdated }).filter(Boolean).sort().pop()
-    document.getElementById('overall-meta').textContent = latest ? t('checked', { t: fmtRelative(latest) }) : ''
+    document.getElementById('overall-text').textContent = text
+    document.getElementById('overall-meta').textContent = meta
 
     var list = document.getElementById('services')
     list.replaceChildren.apply(list, sites.map(renderService))
@@ -285,7 +503,7 @@
     stats.append(el('span', null, t('uptime', { p: pct })))
     if (ms) stats.append(el('span', null, t('response', { ms: ms })))
     var title = el('div', { class: 'service-title' })
-    title.append(el('div', { class: 'service-name' }, s.name), stats)
+    title.append(el('div', { class: 'service-name' }, serviceName(s.slug, s.name)), stats)
     var row = el('div', { class: 'service-row' })
     row.append(tile, title, el('span', { class: 'badge', 'data-state': s.status }, stateLabel(s.status)))
 
@@ -329,8 +547,13 @@
     var li = el('li', { class: 'incident', 'data-open': String(open) })
     var tile = el('span', { class: 'tile', 'aria-hidden': 'true' })
     tile.append(icon(open ? 'alert' : 'check'))
-    var body = el('div')
-    body.append(el('a', { class: 'incident-title', href: i.html_url }, i.title.replace(/^[^\w]+\s*/u, '')))
+    var body = el('div', { class: 'incident-body' })
+    var head = el('div', { class: 'incident-head' })
+    head.append(el('a', { class: 'incident-title', href: i.html_url }, incidentTitle(i)))
+    var u = latestUpdate(i)
+    if (u && open) head.append(el('span', { class: 'phase', 'data-phase': u.phase }, T[lang].phase[u.phase]))
+    body.append(head)
+    if (u) body.append(el('p', { class: 'incident-update' }, u.text))
     var meta = open
       ? t('ongoing', { t: fmtRelative(i.created_at) })
       : t('resolved', {
@@ -417,6 +640,13 @@
 
     document.getElementById('overall-icon').replaceChildren(icon('clock'))
     applyStatic()
+    if (PREVIEW) {
+      var note = el('p', { class: 'preview-note', role: 'note', 'data-i18n': 'preview' }, t('preview'))
+      document.querySelector('main').prepend(note)
+      data = previewData(PREVIEW)
+      render()
+      return
+    }
     load()
     setInterval(function () {
       if (!document.hidden) load()
