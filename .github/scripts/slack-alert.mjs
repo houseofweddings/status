@@ -4,10 +4,12 @@
 // no dependencies. Upptime's own Slack notifier is switched off (no NOTIFICATION_SLACK secret)
 // so each event is announced once.
 //
-//   issue opened by Upptime      → 🔴 <service> is down, with HTTP code and response time
-//   issue closed (automatic)     → 🟢 <service> is back up, with how long it was down
-//   issue opened by a person     → 🟡 incident title and its text
-//   comment by a person          → 🟡/🟢 update, labelled by its first word (Investigating: …)
+//   issue opened by Upptime      → [FIRING] <service>, with the check, result and latency
+//   issue closed (automatic)     → [RESOLVED] <service>, with how long it was failing
+//   issue opened by a person     → [INVESTIGATING] incident title and its text
+//   comment by a person          → [IDENTIFIED] / [MONITORING] / [RESOLVED] / [UPDATE]
+// State tags follow Prometheus Alertmanager (FIRING/RESOLVED) for automatic checks and the
+// status-page phases for incidents people write. No emoji: the attachment colour carries state.
 //   anything labelled false-alarm, or without the `status` label → nothing
 import { readFileSync } from 'node:fs'
 
@@ -28,6 +30,19 @@ const NAMES = {
 }
 
 // EVENT_FILE for a manual re-send: GitHub does not let a step overwrite GITHUB_EVENT_PATH.
+// What a failure of each check means, for the Severity line. critical: couples or partners
+// cannot use the product; major: part of it degrades; minor: only the team notices.
+const SEVERITY = {
+  website: 'critical',
+  'vendor-pages': 'critical',
+  auth: 'critical',
+  'api-and-database': 'critical',
+  storage: 'major',
+  cache: 'major',
+  'partner-portal': 'major',
+  admin: 'minor',
+}
+
 const event = JSON.parse(readFileSync(process.env.EVENT_FILE || process.env.GITHUB_EVENT_PATH, 'utf8'))
 const action = process.env.EVENT_ACTION || event.action
 const issue = event.issue
@@ -45,11 +60,22 @@ const titleName = issue.title.replace(/^[^\p{L}\p{N}]+\s*/u, '').replace(/ (is d
 const service = NAMES[slug] || titleName || slug || 'A service'
 const automatic = /^In \[`[0-9a-f]{7,}`\]/.test(issue.body || '')
 
-const when = (iso) =>
-  new Intl.DateTimeFormat('en-GB', { timeZone: TZ, dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
+// "2026-09-28 13:46 CEST (11:46 UTC)" — unambiguous, sortable, and readable next to server logs.
+const when = (iso) => {
+  const d = new Date(iso)
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-GB', {
+      timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZoneName: 'short',
+    }).formatToParts(d).map((x) => [x.type, x.value]),
+  )
+  const zone = { 'GMT+2': 'CEST', 'GMT+1': 'CET' }[parts.timeZoneName] || parts.timeZoneName
+  const utc = d.toISOString().slice(11, 16)
+  return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} ${zone} (${utc} UTC)`
+}
 const duration = (ms) => {
   const m = Math.max(1, Math.round(ms / 60000))
-  return m < 60 ? `${m} min` : `${Math.floor(m / 60)} h ${m % 60} min`
+  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h ${m % 60}m`
 }
 // Slack mrkdwn, not GitHub markdown: **bold** → *bold*, [t](u) → <u|t>, and escape the three
 // characters Slack treats as control.
@@ -65,12 +91,12 @@ const mrkdwn = (md) =>
     .slice(0, 2900)
 
 const PHASES = [
-  [/^\**\s*(investigating|onderzoek( loopt)?|enquête( en cours)?)\b/i, 'Investigating', '🟡'],
-  [/^\**\s*(identified|oorzaak gevonden|identifiée?)\b/i, 'Identified', '🟡'],
-  [/^\**\s*(monitoring|we volgen het op|opvolging|surveillance)\b/i, 'Monitoring', '🔵'],
-  [/^\**\s*(resolved|opgelost|résolue?)\b/i, 'Resolved', '🟢'],
+  [/^\**\s*(investigating|onderzoek( loopt)?|enquête( en cours)?)\b/i, 'Investigating'],
+  [/^\**\s*(identified|oorzaak gevonden|identifiée?)\b/i, 'Identified'],
+  [/^\**\s*(monitoring|we volgen het op|opvolging|surveillance)\b/i, 'Monitoring'],
+  [/^\**\s*(resolved|opgelost|résolue?)\b/i, 'Resolved'],
 ]
-const phaseOf = (text) => PHASES.find(([re]) => re.test(String(text || '').trim())) || [null, 'Update', '🟡']
+const phaseOf = (text) => PHASES.find(([re]) => re.test(String(text || '').trim())) || [null, 'Update']
 // The label already says the phase, so drop "**Investigating:**" from the front of the text.
 const withoutPhase = (text) => {
   const t = String(text || '').trim()
@@ -81,8 +107,9 @@ const withoutPhase = (text) => {
 
 // Slack's attachment layout: a coloured bar, one bold title line, then short "Label: value"
 // lines — the shape monitoring alerts usually take, and compact in a busy channel.
-const COLOR = { down: '#e7000b', up: '#16a34a', incident: '#f59e0b', monitoring: '#3b82f6' }
-const moreInfo = `*More info:* <${issue.html_url}|Incident #${issue.number}> · <${STATUS_PAGE}|Status page>`
+const COLOR = { firing: '#e7000b', resolved: '#16a34a', incident: '#f59e0b', monitoring: '#3b82f6' }
+const severity = SEVERITY[slug] || 'major'
+const links = `*Links:* <${issue.html_url}|Incident #${issue.number}> · <${STATUS_PAGE}|Status page>`
 
 let color, title, lines
 
@@ -90,50 +117,52 @@ if (automatic && (action === 'opened' || action === 'reopened')) {
   const code = /HTTP code:\s*(\d+)/.exec(issue.body)?.[1]
   const ms = /Response time:\s*(\d+)\s*ms/.exec(issue.body)?.[1]
   const url = /\((https?:\/\/[^)\s]+)\) was/.exec(issue.body)?.[1]
-  color = COLOR.down
-  title = `🔴 DOWN — ${service}`
+  color = COLOR.firing
+  title = `[FIRING] ${service}: ${code ? `HTTP ${code}` : 'no response'}`
   lines = [
-    `Failed check: ${code ? `HTTP ${code}` : 'no answer'}${ms ? ` in ${ms} ms` : ''}`,
-    ...(url ? [`*URL:* ${url}`] : []),
-    `*Since:* ${when(issue.created_at)}`,
-    moreInfo,
+    ...(url ? [`*Check:* \`GET ${url}\``] : []),
+    `*Result:* ${code ? `HTTP ${code}` : 'no response'} (expected 2xx)${ms ? ` · ${ms} ms` : ''}`,
+    `*Severity:* ${severity}`,
+    `*Started:* ${when(issue.created_at)}`,
+    links,
   ]
 } else if (automatic && action === 'closed') {
-  color = COLOR.up
-  title = `🟢 UP — ${service} is back`
+  color = COLOR.resolved
+  title = `[RESOLVED] ${service}`
   lines = [
-    `*Down for:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
-    `*Recovered:* ${when(issue.closed_at)}`,
-    moreInfo,
+    `*Duration:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
+    `*Started:* ${when(issue.created_at)}`,
+    `*Resolved:* ${when(issue.closed_at)}`,
+    links,
   ]
 } else if (!automatic && (action === 'opened' || action === 'reopened')) {
   const [, phase] = phaseOf(issue.body)
   color = COLOR.incident
-  title = `🟡 INCIDENT — ${issue.title}`
+  title = `[${phase.toUpperCase()}] ${issue.title}`
   lines = [
     ...(issue.body ? [mrkdwn(withoutPhase(issue.body))] : []),
-    `*Status:* ${phase}`,
-    `*Service:* ${service}`,
+    `*Service:* ${service} · *Severity:* ${severity}`,
     `*Opened:* ${when(issue.created_at)} by ${issue.user.login}`,
-    moreInfo,
+    links,
   ]
 } else if (!automatic && action === 'closed') {
-  color = COLOR.up
-  title = `🟢 RESOLVED — ${issue.title}`
+  color = COLOR.resolved
+  title = `[RESOLVED] ${issue.title}`
   lines = [
     `*Service:* ${service}`,
-    `*Lasted:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
-    moreInfo,
+    `*Duration:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
+    `*Resolved:* ${when(issue.closed_at)}`,
+    links,
   ]
 } else if (!automatic && action === 'created' && comment) {
-  const [, phase, dot] = phaseOf(comment.body)
-  color = phase === 'Resolved' ? COLOR.up : phase === 'Monitoring' ? COLOR.monitoring : COLOR.incident
-  title = `${dot} ${phase.toUpperCase()} — ${issue.title}`
+  const [, phase] = phaseOf(comment.body)
+  color = phase === 'Resolved' ? COLOR.resolved : phase === 'Monitoring' ? COLOR.monitoring : COLOR.incident
+  title = `[${phase.toUpperCase()}] ${issue.title}`
   lines = [
     mrkdwn(withoutPhase(comment.body)),
-    `*Service:* ${service}`,
-    `*Update:* ${when(comment.created_at)} by ${comment.user.login}`,
-    moreInfo,
+    `*Service:* ${service} · *Severity:* ${severity}`,
+    `*Posted:* ${when(comment.created_at)} by ${comment.user.login}`,
+    links,
   ]
 } else {
   // Upptime's own "Resolved: … is back up" comment on an automatic issue — the close event
