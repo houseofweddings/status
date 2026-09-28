@@ -1,4 +1,5 @@
-// Posts one Slack message per incident event, in Block Kit, instead of Upptime's one-line text.
+// Posts one Slack message per incident event, as a coloured attachment, instead of Upptime's
+// one-line text.
 // Run by .github/workflows/slack-alerts.yml; reads the GitHub event payload, needs Node 20+ and
 // no dependencies. Upptime's own Slack notifier is switched off (no NOTIFICATION_SLACK secret)
 // so each event is announced once.
@@ -78,67 +79,61 @@ const withoutPhase = (text) => {
   return rest.charAt(0).toUpperCase() + rest.slice(1)
 }
 
-const buttons = [
-  { type: 'button', text: { type: 'plain_text', text: 'Status page' }, url: STATUS_PAGE },
-  { type: 'button', text: { type: 'plain_text', text: 'Open incident' }, url: issue.html_url },
-]
-const context = (text) => ({ type: 'context', elements: [{ type: 'mrkdwn', text }] })
+// Slack's attachment layout: a coloured bar, one bold title line, then short "Label: value"
+// lines — the shape monitoring alerts usually take, and compact in a busy channel.
+const COLOR = { down: '#e7000b', up: '#16a34a', incident: '#f59e0b', monitoring: '#3b82f6' }
+const moreInfo = `*More info:* <${issue.html_url}|Incident #${issue.number}> · <${STATUS_PAGE}|Status page>`
 
-let text, blocks
+let color, title, lines
 
 if (automatic && (action === 'opened' || action === 'reopened')) {
   const code = /HTTP code:\s*(\d+)/.exec(issue.body)?.[1]
   const ms = /Response time:\s*(\d+)\s*ms/.exec(issue.body)?.[1]
   const url = /\((https?:\/\/[^)\s]+)\) was/.exec(issue.body)?.[1]
-  text = `🔴 ${service} is down`
-  blocks = [
-    { type: 'header', text: { type: 'plain_text', text } },
-    {
-      type: 'section',
-      fields: [
-        { type: 'mrkdwn', text: `*Since*\n${when(issue.created_at)}` },
-        { type: 'mrkdwn', text: `*Answer*\n${code ? `HTTP ${code}` : 'no answer'}${ms ? ` in ${ms} ms` : ''}` },
-      ],
-    },
-    ...(url ? [context(`Checked: <${url}>`)] : []),
-    { type: 'actions', elements: buttons },
+  color = COLOR.down
+  title = `🔴 DOWN — ${service}`
+  lines = [
+    `Failed check: ${code ? `HTTP ${code}` : 'no answer'}${ms ? ` in ${ms} ms` : ''}`,
+    ...(url ? [`*URL:* ${url}`] : []),
+    `*Since:* ${when(issue.created_at)}`,
+    moreInfo,
   ]
 } else if (automatic && action === 'closed') {
-  text = `🟢 ${service} is back up`
-  blocks = [
-    { type: 'header', text: { type: 'plain_text', text } },
-    {
-      type: 'section',
-      fields: [
-        { type: 'mrkdwn', text: `*Down for*\n${duration(new Date(issue.closed_at) - new Date(issue.created_at))}` },
-        { type: 'mrkdwn', text: `*Recovered*\n${when(issue.closed_at)}` },
-      ],
-    },
-    { type: 'actions', elements: buttons },
+  color = COLOR.up
+  title = `🟢 UP — ${service} is back`
+  lines = [
+    `*Down for:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
+    `*Recovered:* ${when(issue.closed_at)}`,
+    moreInfo,
   ]
 } else if (!automatic && (action === 'opened' || action === 'reopened')) {
-  const [, phase, dot] = phaseOf(issue.body)
-  text = `${dot} Incident: ${issue.title}`
-  blocks = [
-    { type: 'header', text: { type: 'plain_text', text: text.slice(0, 150) } },
-    ...(issue.body ? [{ type: 'section', text: { type: 'mrkdwn', text: mrkdwn(withoutPhase(issue.body)) } }] : []),
-    context(`*${phase}* · ${service} · opened by ${issue.user.login} · ${when(issue.created_at)}`),
-    { type: 'actions', elements: buttons },
+  const [, phase] = phaseOf(issue.body)
+  color = COLOR.incident
+  title = `🟡 INCIDENT — ${issue.title}`
+  lines = [
+    ...(issue.body ? [mrkdwn(withoutPhase(issue.body))] : []),
+    `*Status:* ${phase}`,
+    `*Service:* ${service}`,
+    `*Opened:* ${when(issue.created_at)} by ${issue.user.login}`,
+    moreInfo,
   ]
 } else if (!automatic && action === 'closed') {
-  text = `🟢 Resolved: ${issue.title}`
-  blocks = [
-    { type: 'header', text: { type: 'plain_text', text: text.slice(0, 150) } },
-    context(`${service} · lasted ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`),
-    { type: 'actions', elements: buttons },
+  color = COLOR.up
+  title = `🟢 RESOLVED — ${issue.title}`
+  lines = [
+    `*Service:* ${service}`,
+    `*Lasted:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
+    moreInfo,
   ]
 } else if (!automatic && action === 'created' && comment) {
   const [, phase, dot] = phaseOf(comment.body)
-  text = `${dot} ${phase}: ${issue.title}`
-  blocks = [
-    { type: 'section', text: { type: 'mrkdwn', text: `*${dot} ${phase}* · ${mrkdwn(issue.title)}\n${mrkdwn(withoutPhase(comment.body))}` } },
-    context(`${service} · ${comment.user.login} · ${when(comment.created_at)}`),
-    { type: 'actions', elements: buttons },
+  color = phase === 'Resolved' ? COLOR.up : phase === 'Monitoring' ? COLOR.monitoring : COLOR.incident
+  title = `${dot} ${phase.toUpperCase()} — ${issue.title}`
+  lines = [
+    mrkdwn(withoutPhase(comment.body)),
+    `*Service:* ${service}`,
+    `*Update:* ${when(comment.created_at)} by ${comment.user.login}`,
+    moreInfo,
   ]
 } else {
   // Upptime's own "Resolved: … is back up" comment on an automatic issue — the close event
@@ -147,14 +142,26 @@ if (automatic && (action === 'opened' || action === 'reopened')) {
   process.exit(0)
 }
 
+// No top-level `text`: Slack would print it above the attachment as a duplicate line.
+// `fallback` is what notifications and screen readers show instead.
+const payload = {
+  attachments: [
+    {
+      color,
+      fallback: title,
+      blocks: [{ type: 'section', text: { type: 'mrkdwn', text: [`*${mrkdwn(title)}*`, ...lines].join('\n') } }],
+    },
+  ],
+}
+
 if (!WEBHOOK) {
-  console.log('No SLACK_WEBHOOK_URL; would have sent:\n' + JSON.stringify({ text, blocks }, null, 2))
+  console.log('No SLACK_WEBHOOK_URL; would have sent:\n' + JSON.stringify(payload, null, 2))
   process.exit(0)
 }
 const res = await fetch(WEBHOOK, {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text, blocks }),
+  body: JSON.stringify(payload),
 })
 const body = await res.text()
 console.log(`Slack answered ${res.status} ${body}`)
