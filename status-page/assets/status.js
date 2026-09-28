@@ -31,8 +31,8 @@
       names: {
         website: 'Website & planningstools',
         'vendor-pages': "Leverancierspagina's",
-        auth: 'Inloggen',
-        storage: "Foto's & bestanden",
+        auth: 'Inloggen & accounts',
+        storage: "Foto's & uploads",
         cache: 'Caching',
         'api-and-database': 'API & database',
         admin: 'Interne tools',
@@ -82,8 +82,8 @@
       names: {
         website: 'Site web & outils de planification',
         'vendor-pages': 'Pages des prestataires',
-        auth: 'Connexion',
-        storage: 'Photos & fichiers',
+        auth: 'Connexion & comptes',
+        storage: 'Photos & téléversements',
         cache: 'Mise en cache',
         'api-and-database': 'API & base de données',
         admin: 'Outils internes',
@@ -133,8 +133,8 @@
       names: {
         website: 'Website & planning tools',
         'vendor-pages': 'Vendor pages',
-        auth: 'Sign-in',
-        storage: 'Photos & files',
+        auth: 'Sign-in & accounts',
+        storage: 'Photos & uploads',
         cache: 'Caching',
         'api-and-database': 'API & database',
         admin: 'Internal tools',

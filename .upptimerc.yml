@@ -28,13 +28,13 @@ sites:
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   # Better Auth's own liveness route: the sign-in handler is mounted and answering.
-  - name: Sign-in
+  - name: Sign-in & accounts
     slug: auth
     url: https://houseofweddings.ai/api/auth/ok
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   # One probe each, 200 when the dependency answers, 503 when not (how-platform #187).
-  - name: Photos & files
+  - name: Photos & uploads
     slug: storage
     url: https://houseofweddings.ai/api/health/storage
     headers:
