@@ -4,12 +4,13 @@
 // no dependencies. Upptime's own Slack notifier is switched off (no NOTIFICATION_SLACK secret)
 // so each event is announced once.
 //
-//   issue opened by Upptime      → [FIRING] <service>, with the check, result and latency
-//   issue closed (automatic)     → [RESOLVED] <service>, with how long it was failing
+//   issue opened by Upptime      → [DOWN] or [DEGRADED] <service>, with check, result, latency
+//   issue closed (automatic)     → [HEALTHY] <service>, with how long it was failing
 //   issue opened by a person     → [INVESTIGATING] incident title and its text
 //   comment by a person          → [IDENTIFIED] / [MONITORING] / [RESOLVED] / [UPDATE]
-// State tags follow Prometheus Alertmanager (FIRING/RESOLVED) for automatic checks and the
-// status-page phases for incidents people write. No emoji: the attachment colour carries state.
+// Two vocabularies on purpose: a check reports a state (healthy / degraded / down), an incident a
+// person runs moves through phases (investigating → identified → monitoring → resolved).
+// No emoji: the attachment colour carries the state.
 //   anything labelled false-alarm, or without the `status` label → nothing
 import { readFileSync } from 'node:fs'
 
@@ -117,8 +118,10 @@ if (automatic && (action === 'opened' || action === 'reopened')) {
   const code = /HTTP code:\s*(\d+)/.exec(issue.body)?.[1]
   const ms = /Response time:\s*(\d+)\s*ms/.exec(issue.body)?.[1]
   const url = /\((https?:\/\/[^)\s]+)\) was/.exec(issue.body)?.[1]
-  color = COLOR.firing
-  title = `[FIRING] ${service}: ${code ? `HTTP ${code}` : 'no response'}`
+  // Upptime titles a slow-but-answering check "… has degraded performance".
+  const degraded = /degraded/i.test(issue.title)
+  color = degraded ? COLOR.incident : COLOR.firing
+  title = `[${degraded ? 'DEGRADED' : 'DOWN'}] ${service}: ${code ? `HTTP ${code}` : 'no response'}`
   lines = [
     ...(url ? [`*Check:* \`GET ${url}\``] : []),
     `*Result:* ${code ? `HTTP ${code}` : 'no response'} (expected 2xx)${ms ? ` · ${ms} ms` : ''}`,
@@ -128,7 +131,7 @@ if (automatic && (action === 'opened' || action === 'reopened')) {
   ]
 } else if (automatic && action === 'closed') {
   color = COLOR.resolved
-  title = `[RESOLVED] ${service}`
+  title = `[HEALTHY] ${service}`
   lines = [
     `*Duration:* ${duration(new Date(issue.closed_at) - new Date(issue.created_at))}`,
     `*Started:* ${when(issue.created_at)}`,
