@@ -55,9 +55,11 @@
 
     <main class="wrap">
       <div class="hero">
+        <p class="eyebrow" data-i18n="label">Status</p>
         <h1 data-i18n="title">Hoe gaat het met House of Weddings?</h1>
+        <p class="intro" data-i18n="intro">De website, het partnerportaal en de admin, elke vijf minuten gecontroleerd.</p>
         <div class="overall" id="overall" data-state="loading" role="status" aria-live="polite">
-          <span class="dot" aria-hidden="true"></span>
+          <span class="overall-icon" id="overall-icon" aria-hidden="true"></span>
           <div>
             <strong id="overall-text" data-i18n="loading">Status ophalen…</strong>
             <div class="meta" id="overall-meta"></div>
@@ -76,7 +78,7 @@
           </div>
         </div>
         <ul class="services" id="services">
-          <li class="service"><div class="skeleton"></div></li>
+          <li class="skeleton" aria-hidden="true"></li>
         </ul>
       </section>
 

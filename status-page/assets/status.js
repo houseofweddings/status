@@ -19,6 +19,7 @@
       dark: 'Donkere modus',
       label: 'Status',
       title: 'Hoe gaat het met House of Weddings?',
+      intro: 'De website, het partnerportaal en de admin, elke vijf minuten gecontroleerd.',
       loading: 'Status ophalen…',
       services: 'Diensten',
       incidents: 'Recente incidenten',
@@ -50,6 +51,7 @@
       dark: 'Mode sombre',
       label: 'Statut',
       title: 'Comment va House of Weddings ?',
+      intro: 'Le site, le portail partenaires et l’admin, vérifiés toutes les cinq minutes.',
       loading: 'Récupération du statut…',
       services: 'Services',
       incidents: 'Incidents récents',
@@ -81,6 +83,7 @@
       dark: 'Dark mode',
       label: 'Status',
       title: 'How is House of Weddings doing?',
+      intro: 'The website, the partner portal and the admin, checked every five minutes.',
       loading: 'Fetching status…',
       services: 'Services',
       incidents: 'Recent incidents',
@@ -108,6 +111,29 @@
       failed: 'Could not fetch the status. Try again in a moment.',
       period: { Day: '24h', Week: '7d', Month: '30d', Year: '1y' },
     },
+  }
+
+  // Lucide paths, as the app uses. Constant markup, so innerHTML is safe here — unlike issue titles.
+  var ICONS = {
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    store: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-2-1 2.7 2.7 0 0 1-4 0 2.7 2.7 0 0 1-4 0 2.7 2.7 0 0 1-4 0 2.7 2.7 0 0 1-2 1 2 2 0 0 1-2-2z"/>',
+    shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+    check: '<path d="M20 6 9 17l-5-5"/>',
+    alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  }
+  // One pastel per service, the way the homepage's feature cards alternate them.
+  var SERVICE_LOOK = {
+    website: ['globe', 'pink'],
+    'partner-portal': ['store', 'lavender'],
+    admin: ['shield', 'yellow'],
+    'api-and-database': ['database', 'lavender'],
+  }
+  function icon(name) {
+    var span = document.createElement('span')
+    span.innerHTML = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + '</svg>'
+    return span.firstChild
   }
 
   var lang = pickLang()
@@ -228,6 +254,7 @@
     var o = overallState(sites)
     var overall = document.getElementById('overall')
     overall.dataset.state = o[0]
+    document.getElementById('overall-icon').replaceChildren(icon(o[0] === 'up' ? 'check' : 'alert'))
     document.getElementById('overall-text').textContent = t(o[1])
     var latest = sites.map(function (s) { return s.lastUpdated }).filter(Boolean).sort().pop()
     document.getElementById('overall-meta').textContent = latest ? t('checked', { t: fmtRelative(latest) }) : ''
@@ -249,17 +276,18 @@
 
   function renderService(s) {
     var li = el('li', { class: 'service' })
-    var row = el('div', { class: 'service-row' })
-    row.append(
-      el('span', { class: 'dot', 'data-state': s.status, 'aria-hidden': 'true' }),
-      el('span', { class: 'service-name' }, s.name),
-      el('span', { class: 'service-state', 'data-state': s.status }, stateLabel(s.status)),
-    )
+    var look = SERVICE_LOOK[s.slug] || ['globe', 'lavender']
+    var tile = el('span', { class: 'tile', 'data-tone': look[1], 'aria-hidden': 'true' })
+    tile.append(icon(look[0]))
     var stats = el('div', { class: 'service-stats' })
     var pct = s['uptime' + range] || s.uptime
     var ms = s['time' + range] || s.time
     stats.append(el('span', null, t('uptime', { p: pct })))
     if (ms) stats.append(el('span', null, t('response', { ms: ms })))
+    var title = el('div', { class: 'service-title' })
+    title.append(el('div', { class: 'service-name' }, s.name), stats)
+    var row = el('div', { class: 'service-row' })
+    row.append(tile, title, el('span', { class: 'badge', 'data-state': s.status }, stateLabel(s.status)))
 
     // Not 90 tab stops per service: the bars are hover detail, and the summary below is what a
     // screen reader gets.
@@ -292,21 +320,25 @@
     bars.setAttribute('aria-label', t('barsSummary', { days: DAYS, n: badDays }))
     var legend = el('div', { class: 'bars-legend', 'aria-hidden': 'true' })
     legend.append(el('span', null, t('daysAgo', { n: DAYS })), el('span', null, t('today')))
-    li.append(row, stats, bars, legend)
+    li.append(row, bars, legend)
     return li
   }
 
   function renderIncident(i) {
     var open = i.state === 'open'
     var li = el('li', { class: 'incident', 'data-open': String(open) })
-    li.append(el('a', { class: 'incident-title', href: i.html_url }, i.title.replace(/^[^\w]+\s*/u, '')))
+    var tile = el('span', { class: 'tile', 'aria-hidden': 'true' })
+    tile.append(icon(open ? 'alert' : 'check'))
+    var body = el('div')
+    body.append(el('a', { class: 'incident-title', href: i.html_url }, i.title.replace(/^[^\w]+\s*/u, '')))
     var meta = open
       ? t('ongoing', { t: fmtRelative(i.created_at) })
       : t('resolved', {
           t: fmtDateTime(i.created_at),
           d: fmtDuration(new Date(i.closed_at).getTime() - new Date(i.created_at).getTime()),
         })
-    li.append(el('div', { class: 'incident-meta' }, meta))
+    body.append(el('div', { class: 'incident-meta' }, meta))
+    li.append(tile, body)
     return li
   }
 
@@ -314,6 +346,7 @@
     applyStatic()
     var overall = document.getElementById('overall')
     overall.dataset.state = 'unknown'
+    document.getElementById('overall-icon').replaceChildren(icon('alert'))
     document.getElementById('overall-text').textContent = t('failed')
     document.getElementById('services').replaceChildren()
   }
@@ -382,6 +415,7 @@
       applyStatic()
     })
 
+    document.getElementById('overall-icon').replaceChildren(icon('clock'))
     applyStatic()
     load()
     setInterval(function () {
