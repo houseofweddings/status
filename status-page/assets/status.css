@@ -351,6 +351,9 @@ section > h2 {
 .tile[data-tone='yellow'] {
   background: var(--warning);
 }
+.tile[data-tone='mint'] {
+  background: #68fdc7; /* pro-collective primary */
+}
 .service-title {
   flex: 1;
   min-width: 0;
