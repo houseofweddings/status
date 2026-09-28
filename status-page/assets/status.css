@@ -35,6 +35,7 @@
   --destructive: #e7000b;
   --destructive-strong: #991b1b;
   --destructive-foreground: #ffffff;
+  --banner-down: #fecaca;
   --border: #e5e5e5;
   --ring: #9563e8;
   /* Day bars. chart3 rather than primary: #c79fff is 2.1:1 on white, below the 3:1 a meaningful
@@ -60,6 +61,7 @@
   --destructive: #ff6467;
   --destructive-strong: #fca5a5;
   --destructive-foreground: #450a0a;
+  --banner-down: #fca5a5;
   --border: #282828;
   --ring: #c79fff;
   --bar-up: #c79fff;
@@ -240,10 +242,11 @@ h2 {
   background: var(--warning);
   color: #0a0a0a;
 }
-/* White on #e7000b is 4.7:1; dark mode's lighter red takes the dark label, as in the app. */
+/* A pastel red like the pink and yellow beside it, so it reads as "down" without shouting.
+   Dark text on it; the red that carries the meaning is the icon's (destructiveStrong). */
 .overall[data-state='down'] {
-  background: var(--destructive);
-  color: var(--destructive-foreground);
+  background: var(--banner-down);
+  color: #0a0a0a;
 }
 .overall[data-state='down'] .overall-icon {
   color: #991b1b;
