@@ -181,11 +181,18 @@
   }
   // One pastel per service, the way the homepage's feature cards alternate them. PRO Collective
   // gets mint because that is its own brand colour (themes.ts, `pro-collective`).
+  // Also the display order. summary.json follows the config, but Upptime rewrites it only once a
+  // day, so a reorder there would take a day to show; this takes effect on the next deploy.
   var SERVICE_LOOK = {
     website: ['globe', 'pink'],
-    'partner-portal': ['store', 'mint'],
     admin: ['shield', 'yellow'],
     'api-and-database': ['database', 'lavender'],
+    'partner-portal': ['store', 'mint'],
+  }
+  var SERVICE_ORDER = Object.keys(SERVICE_LOOK)
+  function byServiceOrder(a, b) {
+    var ia = SERVICE_ORDER.indexOf(a.slug), ib = SERVICE_ORDER.indexOf(b.slug)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib)
   }
   function icon(name) {
     var span = document.createElement('span')
@@ -349,7 +356,7 @@
         ])
       })
       .then(function (res) {
-        data = { sites: res[0], incidents: res[1] }
+        data = { sites: res[0].sort(byServiceOrder), incidents: res[1] }
         render()
       })
       .catch(function () {

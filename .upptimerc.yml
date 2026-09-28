@@ -20,11 +20,6 @@ sites:
     url: https://houseofweddings.ai/nl
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
-  - name: PRO Collective
-    slug: partner-portal
-    url: https://partner.houseofweddings.ai/login
-    headers:
-      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   - name: Internal tools
     slug: admin
     url: https://admin.houseofweddings.ai/login
@@ -35,6 +30,11 @@ sites:
   - name: API & database
     slug: api-and-database
     url: https://houseofweddings.ai/api/health
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  - name: PRO Collective
+    slug: partner-portal
+    url: https://partner.houseofweddings.ai/login
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
 
