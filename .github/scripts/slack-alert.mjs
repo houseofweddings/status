@@ -26,7 +26,8 @@ const NAMES = {
   'partner-portal': 'PRO Collective',
 }
 
-const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'))
+// EVENT_FILE for a manual re-send: GitHub does not let a step overwrite GITHUB_EVENT_PATH.
+const event = JSON.parse(readFileSync(process.env.EVENT_FILE || process.env.GITHUB_EVENT_PATH, 'utf8'))
 const action = process.env.EVENT_ACTION || event.action
 const issue = event.issue
 const comment = event.comment
