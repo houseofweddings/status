@@ -1,6 +1,7 @@
 # House of Weddings status
 
-Uptime monitoring for houseofweddings.ai, with our own status page.
+Uptime monitoring for houseofweddings.ai, with our own status page at
+https://status.houseofweddings.ai.
 
 - **Monitoring** is [Upptime](https://upptime.js.org): GitHub Actions check every URL in
   `.upptimerc.yml` every five minutes, commit the results to `history/`, and open an issue
@@ -20,7 +21,9 @@ Uptime monitoring for houseofweddings.ai, with our own status page.
    Vercel denies GitHub's runners and every monitor reads "down".
 3. Repository secret `GH_PAT` — Upptime needs it to commit and open issues (see Upptime docs).
 4. Settings → Pages → Source: **GitHub Actions**.
-5. Optional: custom domain `status.houseofweddings.ai` (CNAME → `houseofweddings.github.io`).
+5. Custom domain `status.houseofweddings.ai`: a `status` CNAME → `houseofweddings.github.io` in
+   Vercel DNS (it overrides the `*` wildcard the org subdomains use), plus Settings → Pages →
+   Custom domain. Deploys come from Actions, so there is no `CNAME` file.
 
 ## Preview locally
 
