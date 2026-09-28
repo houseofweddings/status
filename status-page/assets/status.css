@@ -4,8 +4,8 @@
  *
  * The look follows the homepage, not a generic status page: pastel icon tiles (accent pink,
  * primary lavender, warning yellow), bordered cards at an 18px radius, solid lavender blocks with
- * dark text, and small uppercase labels in primary-strong. There is no green anywhere in the
- * brand, so "working" is lavender and only a problem gets its own colour.
+ * dark text. Status colours are the familiar ones — green working, amber a blip, red down —
+ * taken from the app's success/warning/destructive tokens, never the brand violet as text.
  */
 @font-face {
   font-family: 'Graphie';
@@ -27,8 +27,8 @@
   --muted: #f5f5f5;
   --muted-foreground: #6b6b6b;
   --primary: #c79fff;
-  --primary-strong: #6d28d9;
-  --primary-tint: #efe3ff; /* between chart1 and background — the "working" badge */
+  --success-strong: #166534; /* successStrong — text on the green tint, 7:1 */
+  --success-tint: #dcfce7;
   --accent: #ffd8e9;
   --warning: #ffdf9a;
   --warning-strong: #854d0e;
@@ -38,9 +38,8 @@
   --banner-down: #fca5a5;
   --border: #e5e5e5;
   --ring: #9563e8;
-  /* Day bars. chart3 rather than primary: #c79fff is 2.1:1 on white, below the 3:1 a meaningful
-     graphic needs; #a97bf5 clears it and is still the brand lavender. */
-  --bar-up: #a97bf5;
+  /* Day bars. #16a34a clears the 3:1 a meaningful graphic needs on white (#22c55e would not). */
+  --bar-up: #16a34a;
   --bar-none: #ececec;
   --bar-degraded: #d97706;
   --radius: 1.125rem;
@@ -57,15 +56,15 @@
   --card: #212121;
   --muted: #2e2e2e;
   --muted-foreground: #a1a1a1;
-  --primary-strong: #c4b5fd;
-  --primary-tint: #2b2340; /* sidebarAccent */
+  --success-strong: #4ade80; /* successStrong, dark */
+  --success-tint: #16301f;
   --warning-strong: #fcd34d;
   --destructive: #ff6467;
   --destructive-strong: #fca5a5;
   --destructive-foreground: #450a0a;
   --border: #333333;
   --ring: #c79fff;
-  --bar-up: #c79fff;
+  --bar-up: #22c55e;
   --bar-none: #363636;
   --bar-degraded: #fbbf24;
   color-scheme: dark;
@@ -201,7 +200,7 @@ svg.i {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--primary-strong);
+  color: var(--muted-foreground);
 }
 h1,
 h2 {
@@ -375,8 +374,8 @@ section > h2 {
   font-weight: 600;
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
-  background: var(--primary-tint);
-  color: var(--primary-strong);
+  background: var(--success-tint);
+  color: var(--success-strong);
 }
 .badge[data-state='degraded'] {
   background: var(--warning);
@@ -491,8 +490,8 @@ section > h2 {
   color: #0a0a0a;
 }
 .phase[data-phase='resolved'] {
-  background: var(--primary-tint);
-  color: var(--primary-strong);
+  background: var(--success-tint);
+  color: var(--success-strong);
 }
 .phase[data-phase='update'] {
   background: var(--muted);

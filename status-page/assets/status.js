@@ -10,7 +10,11 @@
   var BRANCH = 'master'
   var RAW = document.documentElement.dataset.source || 'https://raw.githubusercontent.com/' + REPO + '/' + BRANCH
   var ISSUES = document.documentElement.dataset.issues || 'https://api.github.com/repos/' + REPO + '/issues?labels=status&state=all&per_page=10'
-  var DAYS = 90
+  // The period control sets how many days of bars show AND what the numbers cover, so switching
+  // it visibly changes the card. There is no 24h option: Upptime keeps downtime per day only, so
+  // a 24h view would be one bar. Response time has no 90-day figure; that view uses the year's,
+  // which is the same number until a monitor is older than 90 days.
+  var RANGES = { 7: 'Week', 30: 'Month', 90: 'Year' }
   var REFRESH_MS = 60 * 1000
   // GitHub allows 60 unauthenticated API calls an hour per visitor. The status files are raw
   // downloads and do not count; issues and comments do, so they refresh on a slower clock.
@@ -69,7 +73,7 @@
       ongoing: 'Loopt nog · begonnen {t}',
       resolved: 'Opgelost · {t} · duurde {d}',
       failed: 'De status kon niet worden opgehaald. Probeer het zo meteen opnieuw.',
-      period: { Day: '24u', Week: '7d', Month: '30d', Year: '1j' },
+      period: { 7: '7 dagen', 30: '30 dagen', 90: '90 dagen' },
     },
     fr: {
       dark: 'Mode sombre',
@@ -117,7 +121,7 @@
       ongoing: 'En cours · depuis {t}',
       resolved: 'Résolu · {t} · a duré {d}',
       failed: 'Impossible de récupérer le statut. Réessayez dans un instant.',
-      period: { Day: '24 h', Week: '7 j', Month: '30 j', Year: '1 an' },
+      period: { 7: '7 jours', 30: '30 jours', 90: '90 jours' },
     },
     en: {
       dark: 'Dark mode',
@@ -165,7 +169,7 @@
       ongoing: 'Ongoing · started {t}',
       resolved: 'Resolved · {t} · lasted {d}',
       failed: 'Could not fetch the status. Try again in a moment.',
-      period: { Day: '24h', Week: '7d', Month: '30d', Year: '1y' },
+      period: { 7: '7 days', 30: '30 days', 90: '90 days' },
     },
   }
 
@@ -264,7 +268,8 @@
   }
 
   var lang = pickLang()
-  var range = readPref('status-range', 'Month')
+  var range = Number(readPref('status-range', '90'))
+  if (!RANGES[range]) range = 90 // an older visit stored 'Month' etc.
   var data = null // { sites, incidents }
 
   function pickLang() {
@@ -500,14 +505,25 @@
     return s === 'down' ? t('down') : s === 'degraded' ? t('stateDegraded') : t('up')
   }
 
+  function uptimeOver(s, days) {
+    var now = Date.now()
+    var from = now - days * 86400000
+    var start = s.startTime ? Math.max(from, new Date(s.startTime).getTime()) : from
+    var tracked = Math.max(1, (now - start) / 60000)
+    var down = 0
+    var firstDay = dayKey(new Date(from))
+    for (var k in s.dailyMinutesDown || {}) if (k >= firstDay) down += s.dailyMinutesDown[k]
+    return Math.max(0, 100 - (down / tracked) * 100).toFixed(2) + '%'
+  }
+
   function renderService(s) {
     var li = el('li', { class: 'service' })
     var look = SERVICE_LOOK[s.slug] || ['globe', 'lavender']
     var tile = el('span', { class: 'tile', 'data-tone': look[1], 'aria-hidden': 'true' })
     tile.append(icon(look[0]))
     var stats = el('div', { class: 'service-stats' })
-    var pct = s['uptime' + range] || s.uptime
-    var ms = s['time' + range] || s.time
+    var pct = uptimeOver(s, range)
+    var ms = s['time' + RANGES[range]] || s.time
     stats.append(el('span', null, t('uptime', { p: pct })))
     if (ms) stats.append(el('span', null, t('response', { ms: ms })))
     var title = el('div', { class: 'service-title' })
@@ -521,7 +537,7 @@
     var badDays = 0
     var today = new Date()
     var start = s.startTime ? dayKey(new Date(s.startTime)) : null
-    for (var i = DAYS - 1; i >= 0; i--) {
+    for (var i = range - 1; i >= 0; i--) {
       var d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i))
       var key = dayKey(d)
       var mins = (s.dailyMinutesDown || {})[key] || 0
@@ -543,9 +559,9 @@
       bar.dataset.tip = dateLabel + ' · ' + label
       bars.append(bar)
     }
-    bars.setAttribute('aria-label', t('barsSummary', { days: DAYS, n: badDays }))
+    bars.setAttribute('aria-label', t('barsSummary', { days: range, n: badDays }))
     var legend = el('div', { class: 'bars-legend', 'aria-hidden': 'true' })
-    legend.append(el('span', null, t('daysAgo', { n: DAYS })), el('span', null, t('today')))
+    legend.append(el('span', null, t('daysAgo', { n: range })), el('span', null, t('today')))
     li.append(row, bars, legend)
     return li
   }
@@ -596,7 +612,7 @@
     toggle.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'dark'))
     document.querySelectorAll('[data-range]').forEach(function (b) {
       b.textContent = T[lang].period[b.dataset.range]
-      b.setAttribute('aria-pressed', String(b.dataset.range === range))
+      b.setAttribute('aria-pressed', String(Number(b.dataset.range) === range))
     })
   }
 
@@ -631,8 +647,8 @@
     })
     document.querySelectorAll('[data-range]').forEach(function (b) {
       b.addEventListener('click', function () {
-        range = b.dataset.range
-        writePref('status-range', range)
+        range = Number(b.dataset.range)
+        writePref('status-range', String(range))
         render()
       })
     })
