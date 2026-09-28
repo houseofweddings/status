@@ -57,6 +57,12 @@ sites:
     url: https://partner.houseofweddings.ai/login
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  # TEMPORARY — alert test, 404 on purpose. Remove after the test.
+  - name: Alert test
+    slug: alert-test
+    url: https://houseofweddings.ai/api/health/nope
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
 
 assignees:
   - JensDanneelsHOW
