@@ -5,18 +5,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/houseofweddings.ai.ico",
     "slug": "website",
     "status": "down",
-    "uptime": "5.60%",
-    "uptimeDay": "5.60%",
-    "uptimeWeek": "5.60%",
-    "uptimeMonth": "5.60%",
-    "uptimeYear": "5.60%",
-    "time": 53,
-    "timeDay": 53,
-    "timeWeek": 53,
-    "timeMonth": 53,
-    "timeYear": 53,
+    "uptime": "3.36%",
+    "uptimeDay": "3.36%",
+    "uptimeWeek": "3.36%",
+    "uptimeMonth": "3.36%",
+    "uptimeYear": "3.36%",
+    "time": 45,
+    "timeDay": 45,
+    "timeWeek": 45,
+    "timeMonth": 45,
+    "timeYear": 45,
     "dailyMinutesDown": {
-      "2026-09-28": 3
+      "2026-09-28": 6
     }
   },
   {
@@ -25,18 +25,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/partner.houseofweddings.ai.ico",
     "slug": "partner-portal",
     "status": "down",
-    "uptime": "5.98%",
-    "uptimeDay": "5.98%",
-    "uptimeWeek": "5.98%",
-    "uptimeMonth": "5.98%",
-    "uptimeYear": "5.98%",
-    "time": 32,
-    "timeDay": 32,
-    "timeWeek": 32,
-    "timeMonth": 32,
-    "timeYear": 32,
+    "uptime": "3.22%",
+    "uptimeDay": "3.22%",
+    "uptimeWeek": "3.22%",
+    "uptimeMonth": "3.22%",
+    "uptimeYear": "3.22%",
+    "time": 77,
+    "timeDay": 77,
+    "timeWeek": 77,
+    "timeMonth": 77,
+    "timeYear": 77,
     "dailyMinutesDown": {
-      "2026-09-28": 3
+      "2026-09-28": 6
     }
   },
   {
@@ -45,18 +45,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/admin.houseofweddings.ai.ico",
     "slug": "admin",
     "status": "down",
-    "uptime": "6.35%",
-    "uptimeDay": "6.35%",
-    "uptimeWeek": "6.35%",
-    "uptimeMonth": "6.35%",
-    "uptimeYear": "6.35%",
-    "time": 60,
-    "timeDay": 60,
-    "timeWeek": 60,
-    "timeMonth": 60,
-    "timeYear": 60,
+    "uptime": "3.63%",
+    "uptimeDay": "3.63%",
+    "uptimeWeek": "3.63%",
+    "uptimeMonth": "3.63%",
+    "uptimeYear": "3.63%",
+    "time": 48,
+    "timeDay": 48,
+    "timeWeek": 48,
+    "timeMonth": 48,
+    "timeYear": 48,
     "dailyMinutesDown": {
-      "2026-09-28": 3
+      "2026-09-28": 5
     }
   },
   {
@@ -65,18 +65,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/houseofweddings.ai.ico",
     "slug": "api-and-database",
     "status": "down",
-    "uptime": "7.33%",
-    "uptimeDay": "7.33%",
-    "uptimeWeek": "7.33%",
-    "uptimeMonth": "7.33%",
-    "uptimeYear": "7.33%",
-    "time": 122,
-    "timeDay": 122,
-    "timeWeek": 122,
-    "timeMonth": 122,
-    "timeYear": 122,
+    "uptime": "3.77%",
+    "uptimeDay": "3.77%",
+    "uptimeWeek": "3.77%",
+    "uptimeMonth": "3.77%",
+    "uptimeYear": "3.77%",
+    "time": 93,
+    "timeDay": 93,
+    "timeWeek": 93,
+    "timeMonth": 93,
+    "timeYear": 93,
     "dailyMinutesDown": {
-      "2026-09-28": 3
+      "2026-09-28": 5
     }
   }
 ]
