@@ -634,7 +634,7 @@
       if (dark) document.documentElement.dataset.theme = 'dark'
       else delete document.documentElement.dataset.theme
       writePref('status-theme', dark ? 'dark' : 'light')
-      document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#0a0a0a' : '#ffffff')
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#171717' : '#ffffff')
       applyStatic()
     })
 

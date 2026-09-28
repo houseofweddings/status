@@ -35,7 +35,7 @@
   --destructive: #e7000b;
   --destructive-strong: #991b1b;
   --destructive-foreground: #ffffff;
-  --banner-down: #fecaca;
+  --banner-down: #fca5a5;
   --border: #e5e5e5;
   --ring: #9563e8;
   /* Day bars. chart3 rather than primary: #c79fff is 2.1:1 on white, below the 3:1 a meaningful
@@ -49,11 +49,13 @@
 }
 
 /* Light is the default; dark only when the visitor picks it (the toggle in the header). */
+/* One step lighter than the app's #0a0a0a dark palette: on a page that is mostly empty
+   background, near-black read as a hole. Each surface keeps the same step above the one below. */
 :root[data-theme='dark'] {
-  --background: #0a0a0a;
+  --background: #171717;
   --foreground: #fafafa;
-  --card: #171717;
-  --muted: #262626;
+  --card: #212121;
+  --muted: #2e2e2e;
   --muted-foreground: #a1a1a1;
   --primary-strong: #c4b5fd;
   --primary-tint: #2b2340; /* sidebarAccent */
@@ -61,11 +63,10 @@
   --destructive: #ff6467;
   --destructive-strong: #fca5a5;
   --destructive-foreground: #450a0a;
-  --banner-down: #fca5a5;
-  --border: #282828;
+  --border: #333333;
   --ring: #c79fff;
   --bar-up: #c79fff;
-  --bar-none: #2a2a2a;
+  --bar-none: #363636;
   --bar-degraded: #fbbf24;
   color-scheme: dark;
 }
@@ -242,7 +243,8 @@ h2 {
   background: var(--warning);
   color: #0a0a0a;
 }
-/* A pastel red like the pink and yellow beside it, so it reads as "down" without shouting.
+/* A pastel red (the app's dark-mode destructiveStrong), the same in both modes, so it reads as
+   "down" without shouting.
    Dark text on it; the red that carries the meaning is the icon's (destructiveStrong). */
 .overall[data-state='down'] {
   background: var(--banner-down);
