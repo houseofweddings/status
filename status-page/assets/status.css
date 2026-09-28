@@ -38,8 +38,11 @@
   --banner-down: #fca5a5;
   --border: #e5e5e5;
   --ring: #9563e8;
-  /* Day bars. #16a34a clears the 3:1 a meaningful graphic needs on white (#22c55e would not). */
-  --bar-up: #16a34a;
+  /* Day bars: a soft green that sits with the pastel tiles, the same in both modes (the app's
+     dark-mode successStrong). It is under 3:1 on white on purpose, like the review stars: a
+     working day carries no information of its own — the uptime figure, the tooltip and the
+     screen-reader summary say it — and the days that matter are the amber and red ones. */
+  --bar-up: #4ade80;
   --bar-none: #ececec;
   --bar-degraded: #d97706;
   --radius: 1.125rem;
@@ -64,7 +67,7 @@
   --destructive-foreground: #450a0a;
   --border: #333333;
   --ring: #c79fff;
-  --bar-up: #22c55e;
+  --bar-up: #4ade80;
   --bar-none: #363636;
   --bar-degraded: #fbbf24;
   color-scheme: dark;
