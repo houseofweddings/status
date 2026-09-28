@@ -114,7 +114,7 @@ svg.i {
 }
 
 .wrap {
-  max-width: 50rem;
+  max-width: 66rem;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -301,6 +301,18 @@ section > h2 {
   padding: 0;
   display: grid;
   gap: 1rem;
+}
+/* Two columns once a card is still wide enough for 90 legible bars (~3px each); one below. */
+@media (min-width: 56rem) {
+  .services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .services .bars {
+    gap: 2px;
+  }
+  .services .bar {
+    border-radius: 2px;
+  }
 }
 .service {
   padding: 1.5rem;
