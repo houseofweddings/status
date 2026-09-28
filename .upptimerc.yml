@@ -9,25 +9,27 @@ repo: status
 # site is fine. The header only helps once the Vercel Firewall rule exists:
 #   request header x-smoke-test equals <SMOKE_TEST_TOKEN> → Bypass
 # — the same rule the deploy smoke test in how-platform's ci.yml is waiting on.
+# Upptime forwards a secret to the checks only if its name appears as `$NAME` in this file, so
+# the repository secret must be named exactly SMOKE_TEST_TOKEN.
 sites:
   - name: Website
     url: https://houseofweddings.ai/nl
     headers:
-      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   - name: Partner portal
     url: https://partner.houseofweddings.ai/login
     headers:
-      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   - name: Admin
     url: https://admin.houseofweddings.ai/login
     headers:
-      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   # 200 when the app can reach Postgres, 503 when it cannot. A page can be served from cache while
   # the database is gone; this cannot.
   - name: API & database
     url: https://houseofweddings.ai/api/health
     headers:
-      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
 
 assignees:
   - JensDanneelsHOW
