@@ -32,7 +32,7 @@ sites:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   # 200 when the app can reach Postgres, 503 when it cannot. A page can be served from cache while
   # the database is gone; this cannot.
-  - name: Core services
+  - name: API & database
     slug: api-and-database
     url: https://houseofweddings.ai/api/health
     headers:

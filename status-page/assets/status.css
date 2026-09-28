@@ -34,6 +34,7 @@
   --warning-strong: #854d0e;
   --destructive: #e7000b;
   --destructive-strong: #991b1b;
+  --destructive-foreground: #ffffff;
   --border: #e5e5e5;
   --ring: #9563e8;
   /* Day bars. chart3 rather than primary: #c79fff is 2.1:1 on white, below the 3:1 a meaningful
@@ -58,6 +59,7 @@
   --warning-strong: #fcd34d;
   --destructive: #ff6467;
   --destructive-strong: #fca5a5;
+  --destructive-foreground: #450a0a;
   --border: #282828;
   --ring: #c79fff;
   --bar-up: #c79fff;
@@ -217,7 +219,8 @@ h2 {
   font-size: 1.5rem;
 }
 
-/* The banner is the homepage's lavender search block: solid brand colour, dark text. */
+/* A solid block like the homepage's: pink when all is well (softer than the lavender), yellow
+   while something is being looked into or is slow, red only when a service is unreachable. */
 .overall {
   display: flex;
   align-items: center;
@@ -230,13 +233,20 @@ h2 {
   text-align: left;
 }
 .overall[data-state='up'] {
-  background: var(--primary);
+  background: var(--accent);
   color: #0a0a0a;
 }
-.overall[data-state='degraded'],
-.overall[data-state='down'] {
+.overall[data-state='degraded'] {
   background: var(--warning);
   color: #0a0a0a;
+}
+/* White on #e7000b is 4.7:1; dark mode's lighter red takes the dark label, as in the app. */
+.overall[data-state='down'] {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+.overall[data-state='down'] .overall-icon {
+  color: #991b1b;
 }
 .overall-icon {
   flex: none;
