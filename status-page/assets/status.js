@@ -16,6 +16,7 @@
   var LOCALES = { nl: 'nl-BE', fr: 'fr-BE', en: 'en-BE' }
   var T = {
     nl: {
+      dark: 'Donkere modus',
       label: 'Status',
       title: 'Hoe gaat het met House of Weddings?',
       loading: 'Status ophalen…',
@@ -46,6 +47,7 @@
       period: { Day: '24u', Week: '7d', Month: '30d', Year: '1j' },
     },
     fr: {
+      dark: 'Mode sombre',
       label: 'Statut',
       title: 'Comment va House of Weddings ?',
       loading: 'Récupération du statut…',
@@ -76,6 +78,7 @@
       period: { Day: '24 h', Week: '7 j', Month: '30 j', Year: '1 an' },
     },
     en: {
+      dark: 'Dark mode',
       label: 'Status',
       title: 'How is House of Weddings doing?',
       loading: 'Fetching status…',
@@ -188,6 +191,9 @@
                   return Object.assign({}, s, {
                     status: live.status || s.status,
                     lastUpdated: live.lastUpdated || null,
+                    // Only in the per-site file, not summary.json. Days before it are "no data",
+                    // not "no downtime" — otherwise a monitor started today shows 90 green days.
+                    startTime: live.startTime || s.startTime || null,
                   })
                 })
                 .catch(function () { return s })
@@ -321,6 +327,9 @@
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.lang === lang))
     })
+    var toggle = document.getElementById('theme-toggle')
+    toggle.setAttribute('aria-label', T[lang].dark)
+    toggle.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'dark'))
     document.querySelectorAll('[data-range]').forEach(function (b) {
       b.textContent = T[lang].period[b.dataset.range]
       b.setAttribute('aria-pressed', String(b.dataset.range === range))
@@ -362,6 +371,15 @@
         writePref('status-range', range)
         render()
       })
+    })
+
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+      var dark = document.documentElement.dataset.theme !== 'dark'
+      if (dark) document.documentElement.dataset.theme = 'dark'
+      else delete document.documentElement.dataset.theme
+      writePref('status-theme', dark ? 'dark' : 'light')
+      document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#0a0a0a' : '#ffffff')
+      applyStatic()
     })
 
     applyStatic()

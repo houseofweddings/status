@@ -16,13 +16,6 @@
   font-weight: 600;
   font-display: swap;
 }
-@font-face {
-  font-family: 'Gyst';
-  src: url('https://houseofweddings.ai/fonts/gyst-variable.woff2') format('woff2');
-  font-weight: 300 900;
-  font-display: swap;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
@@ -44,22 +37,21 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --card: #171717;
-    --muted: #262626;
-    --muted-foreground: #a1a1a1;
-    --banner: #2b2340; /* sidebarAccent */
-    --border: #282828;
-    --ring: #c79fff;
-    --up: #4ade80;
-    --degraded: #fcd34d;
-    --down: #fca5a5;
-    --no-data: #343434;
-    color-scheme: dark;
-  }
+/* Light is the default; dark only when the visitor picks it (the toggle in the header). */
+:root[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #171717;
+  --muted: #262626;
+  --muted-foreground: #a1a1a1;
+  --banner: #2b2340; /* sidebarAccent */
+  --border: #282828;
+  --ring: #c79fff;
+  --up: #4ade80;
+  --degraded: #fcd34d;
+  --down: #fca5a5;
+  --no-data: #343434;
+  color-scheme: dark;
 }
 
 *,
@@ -127,6 +119,7 @@ a {
 }
 .lang {
   display: flex;
+  align-items: center;
   gap: 0.25rem;
 }
 .lang button {
@@ -141,6 +134,28 @@ a {
   border-radius: calc(var(--radius) - 4px);
   cursor: pointer;
 }
+.theme-toggle {
+  font: inherit;
+  background: none;
+  border: 0;
+  color: var(--muted-foreground);
+  padding: 0.25rem;
+  margin-left: 0.25rem;
+  border-radius: calc(var(--radius) - 4px);
+  cursor: pointer;
+  display: inline-flex;
+}
+.theme-toggle:hover {
+  color: var(--foreground);
+}
+.theme-toggle svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+:root[data-theme='dark'] .icon-moon,
+:root:not([data-theme='dark']) .icon-sun {
+  display: none;
+}
 .lang button[aria-pressed='true'] {
   background: var(--muted);
   color: var(--foreground);
@@ -152,9 +167,8 @@ a {
 }
 h1,
 h2 {
-  font-family: 'Gyst', Georgia, serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.1;
   margin: 0;
 }

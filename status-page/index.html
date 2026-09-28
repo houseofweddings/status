@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>House of Weddings — Status</title>
     <meta name="description" content="Live status of houseofweddings.ai, the partner portal and the admin." />
-    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      // Before first paint, so a dark-mode visitor never sees a white flash. Light unless chosen.
+      try { if (localStorage.getItem('status-theme') === 'dark') document.documentElement.dataset.theme = 'dark' } catch (e) {}
+    </script>
     <link rel="icon" href="assets/logo-mark.svg" type="image/svg+xml" />
     <link rel="preload" href="https://houseofweddings.ai/fonts/graphie-regular.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="assets/status.css" />
@@ -42,6 +45,10 @@
           <button type="button" data-lang="nl">nl</button>
           <button type="button" data-lang="fr">fr</button>
           <button type="button" data-lang="en">en</button>
+          <button type="button" class="theme-toggle" id="theme-toggle" aria-pressed="false">
+            <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-2.93 1.41-1.41M17.66 6.34l1.41-1.41M2 12h2m16 0h2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41"/></svg>
+          </button>
         </div>
       </div>
     </header>
