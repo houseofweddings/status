@@ -20,16 +20,36 @@ sites:
     url: https://houseofweddings.ai/nl
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  # Redirects to a random live vendor's page; the check follows it, so a 200 means a real
+  # listing rendered. Across listings over time, rather than one page that can be unpublished.
+  - name: Vendor pages
+    slug: vendor-pages
+    url: https://houseofweddings.ai/api/health/vendor
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  # Better Auth's own liveness route: the sign-in handler is mounted and answering.
+  - name: Sign-in
+    slug: auth
+    url: https://houseofweddings.ai/api/auth/ok
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  # One probe each, 200 when the dependency answers, 503 when not (how-platform #187).
+  - name: Photos & files
+    slug: storage
+    url: https://houseofweddings.ai/api/health/storage
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
+  # /api/health/cache exists but is not monitored: production has no UPSTASH_REDIS_REST_* yet
+  # (2026-09-28), so it would read "down" permanently. Add it back once Redis is configured:
+  #   - name: Caching / slug: cache / url: https://houseofweddings.ai/api/health/cache
+  - name: API & database
+    slug: api-and-database
+    url: https://houseofweddings.ai/api/health/database
+    headers:
+      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   - name: Internal tools
     slug: admin
     url: https://admin.houseofweddings.ai/login
-    headers:
-      - 'x-smoke-test: $SMOKE_TEST_TOKEN'
-  # 200 when the app can reach Postgres, 503 when it cannot. A page can be served from cache while
-  # the database is gone; this cannot.
-  - name: API & database
-    slug: api-and-database
-    url: https://houseofweddings.ai/api/health
     headers:
       - 'x-smoke-test: $SMOKE_TEST_TOKEN'
   - name: PRO Collective

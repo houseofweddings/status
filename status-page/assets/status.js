@@ -30,9 +30,13 @@
       dark: 'Donkere modus',
       names: {
         website: 'Website & planningstools',
-        'partner-portal': 'PRO Collective',
-        admin: 'Interne tools',
+        'vendor-pages': "Leverancierspagina's",
+        auth: 'Inloggen',
+        storage: "Foto's & bestanden",
+        cache: 'Caching',
         'api-and-database': 'API & database',
+        admin: 'Interne tools',
+        'partner-portal': 'PRO Collective',
       },
       autoDown: '{name}: onbereikbaar',
       autoSlow: '{name}: traag',
@@ -77,9 +81,13 @@
       dark: 'Mode sombre',
       names: {
         website: 'Site web & outils de planification',
-        'partner-portal': 'PRO Collective',
-        admin: 'Outils internes',
+        'vendor-pages': 'Pages des prestataires',
+        auth: 'Connexion',
+        storage: 'Photos & fichiers',
+        cache: 'Mise en cache',
         'api-and-database': 'API & base de données',
+        admin: 'Outils internes',
+        'partner-portal': 'PRO Collective',
       },
       autoDown: '{name} : injoignable',
       autoSlow: '{name} : lent',
@@ -124,9 +132,13 @@
       dark: 'Dark mode',
       names: {
         website: 'Website & planning tools',
-        'partner-portal': 'PRO Collective',
-        admin: 'Internal tools',
+        'vendor-pages': 'Vendor pages',
+        auth: 'Sign-in',
+        storage: 'Photos & files',
+        cache: 'Caching',
         'api-and-database': 'API & database',
+        admin: 'Internal tools',
+        'partner-portal': 'PRO Collective',
       },
       autoDown: '{name}: unreachable',
       autoSlow: '{name}: slow',
@@ -178,6 +190,10 @@
     check: '<path d="M20 6 9 17l-5-5"/>',
     alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
     clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+    zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
   }
   // One pastel per service, the way the homepage's feature cards alternate them. PRO Collective
   // gets mint because that is its own brand colour (themes.ts, `pro-collective`).
@@ -185,8 +201,12 @@
   // day, so a reorder there would take a day to show; this takes effect on the next deploy.
   var SERVICE_LOOK = {
     website: ['globe', 'pink'],
-    admin: ['shield', 'yellow'],
+    'vendor-pages': ['heart', 'lilac'],
+    auth: ['lock', 'sky'],
+    storage: ['image', 'peach'],
+    cache: ['zap', 'sand'],
     'api-and-database': ['database', 'lavender'],
+    admin: ['shield', 'yellow'],
     'partner-portal': ['store', 'mint'],
   }
   var SERVICE_ORDER = Object.keys(SERVICE_LOOK)

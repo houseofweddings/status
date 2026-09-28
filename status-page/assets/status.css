@@ -333,6 +333,20 @@ section > h2 {
 .tile[data-tone='mint'] {
   background: #68fdc7; /* pro-collective primary */
 }
+/* Four more pastels for the dependency rows, at the same lightness as the brand tiles so no
+   two of the eight services share a colour. Dark icons on all of them. */
+.tile[data-tone='lilac'] {
+  background: #e9d9ff; /* chart1 */
+}
+.tile[data-tone='sky'] {
+  background: #d6e6ff;
+}
+.tile[data-tone='peach'] {
+  background: #ffe0cc;
+}
+.tile[data-tone='sand'] {
+  background: #efe6d6;
+}
 .service-title {
   flex: 1;
   min-width: 0;
