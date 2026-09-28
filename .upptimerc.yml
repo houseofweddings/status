@@ -1,5 +1,5 @@
 # Upptime monitors these every five minutes from GitHub Actions and commits the results to
-# history/. The status page is NOT Upptime's own site: it is site/, which reads history/ at view
+# history/. The status page is NOT Upptime's own site: it is status-page/, which reads history/ at view
 # time and is deployed by .github/workflows/status-page.yml. See README.md.
 owner: houseofweddings
 repo: status

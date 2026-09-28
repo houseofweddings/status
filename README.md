@@ -5,10 +5,11 @@ Uptime monitoring for houseofweddings.ai, with our own status page.
 - **Monitoring** is [Upptime](https://upptime.js.org): GitHub Actions check every URL in
   `.upptimerc.yml` every five minutes, commit the results to `history/`, and open an issue
   labelled `status` when something goes down (closed automatically on recovery).
-- **The page** is `site/` — plain HTML, CSS and JS, no build. It reads `history/` and the issues
+- **The page** is `status-page/` (not `site/`: Upptime builds its own site into that folder and
+  fails if it already exists) — plain HTML, CSS and JS, no build. It reads `history/` and the issues
   at view time, so it is current without redeploying. Styled with the `wedding` tokens from
   how-platform's `packages/config/themes.ts`; if the palette changes there, change
-  `site/assets/status.css`.
+  `status-page/assets/status.css`.
 - It is hosted on GitHub Pages, **not** on Vercel, so it stays up when the app does not. The
   fonts load from `houseofweddings.ai/fonts/` and fall back to system fonts during an outage.
 
@@ -23,7 +24,7 @@ Uptime monitoring for houseofweddings.ai, with our own status page.
 
 ## Preview locally
 
-    python3 -m http.server -d site 8080
+    python3 -m http.server -d status-page 8080
 
 The page reads `data-source` / `data-issues` on `<html>` if set, so a preview can point it at
 sample files instead of GitHub.
