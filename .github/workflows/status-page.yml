@@ -1,0 +1,34 @@
+# Publishes site/ — our own status page — to GitHub Pages. Only runs when the page itself
+# changes: the page fetches history/ at view time, so Upptime's commits need no redeploy.
+# Pages must be set to Settings → Pages → Source: GitHub Actions.
+name: Status page
+
+on:
+  push:
+    branches: [master]
+    paths: ['site/**', '.github/workflows/status-page.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

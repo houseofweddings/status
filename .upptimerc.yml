@@ -1,31 +1,40 @@
-# Change these first
-owner: upptime # Your GitHub organization or username, where this repository lives
-repo: upptime # The name of this repository
+# Upptime monitors these every five minutes from GitHub Actions and commits the results to
+# history/. The status page is NOT Upptime's own site: it is site/, which reads history/ at view
+# time and is deployed by .github/workflows/status-page.yml. See README.md.
+owner: houseofweddings
+repo: status
 
+# Every check sends x-smoke-test. Vercel's firewall denies GitHub's datacenter IPs outright
+# (403 `deny`, 2026-09-24), so without the bypass rule every monitor would read "down" while the
+# site is fine. The header only helps once the Vercel Firewall rule exists:
+#   request header x-smoke-test equals <SMOKE_TEST_TOKEN> → Bypass
+# — the same rule the deploy smoke test in how-platform's ci.yml is waiting on.
 sites:
-  - name: Google
-    url: https://www.google.com
-  - name: Wikipedia
-    url: https://en.wikipedia.org
-  - name: Hacker News
-    url: https://news.ycombinator.com
-  - name: Secret Site
-    url: $SECRET_SITE
+  - name: Website
+    url: https://houseofweddings.ai/nl
+    headers:
+      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+  - name: Partner portal
+    url: https://partner.houseofweddings.ai/login
+    headers:
+      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+  - name: Admin
+    url: https://admin.houseofweddings.ai/login
+    headers:
+      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
+  # 200 when the app can reach Postgres, 503 when it cannot. A page can be served from cache while
+  # the database is gone; this cannot.
+  - name: API & database
+    url: https://houseofweddings.ai/api/health
+    headers:
+      - 'x-smoke-test: $SECRET_SMOKE_TEST_TOKEN'
 
+assignees:
+  - JensDanneelsHOW
+
+# Upptime still needs this block to exist, but its generated Svelte site is not what we publish.
+# GitHub Pages is set to "GitHub Actions" as its source, so the gh-pages branch its site workflow
+# writes is never served.
 status-website:
-  # Add your custom domain name, or remove the `cname` line if you don't have a domain
-  # Uncomment the `baseUrl` line if you don't have a custom domain and add your repo name there
-  cname: demo.upptime.js.org
-  # baseUrl: /your-repo-name
-  logoUrl: https://raw.githubusercontent.com/upptime/upptime.js.org/master/static/img/icon.svg
-  name: Upptime
-  introTitle: "**Upptime** is the open-source uptime monitor and status page, powered entirely by GitHub."
-  introMessage: This is a sample status page which uses **real-time** data from our [GitHub repository](https://github.com/upptime/upptime). No server required — just GitHub Actions, Issues, and Pages. [**Get your own for free**](https://github.com/upptime/upptime)
-  navbar:
-    - title: Status
-      href: /
-    - title: GitHub
-      href: https://github.com/$OWNER/$REPO
-
-# Upptime also supports notifications, assigning issues, and more
-# See https://upptime.js.org/docs/configuration
+  name: House of Weddings status
+  baseUrl: /status
