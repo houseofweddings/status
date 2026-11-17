@@ -1,7 +1,7 @@
 url: https://houseofweddings.ai/api/health/vendor
-status: down
-code: 500
-responseTime: 1416
-lastUpdated: 2026-11-17T05:15:55.305Z
+status: up
+code: 200
+responseTime: 1608
+lastUpdated: 2026-11-17T05:23:58.292Z
 startTime: 2026-09-28T11:32:08.926Z
 generator: Upptime <https://github.com/upptime/upptime>
