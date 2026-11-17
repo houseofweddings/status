@@ -13,7 +13,7 @@
     "time": 1887,
     "timeDay": 961,
     "timeWeek": 1516,
-    "timeMonth": 1429,
+    "timeMonth": 1461,
     "timeYear": 1887,
     "dailyMinutesDown": {}
   },
@@ -22,18 +22,20 @@
     "url": "https://houseofweddings.ai/api/health/vendor",
     "icon": "https://icons.duckduckgo.com/ip3/houseofweddings.ai.ico",
     "slug": "vendor-pages",
-    "status": "up",
+    "status": "down",
     "uptime": "100.00%",
-    "uptimeDay": "100.00%",
+    "uptimeDay": "99.99%",
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
-    "time": 2207,
-    "timeDay": 2575,
-    "timeWeek": 2671,
-    "timeMonth": 2314,
-    "timeYear": 2207,
-    "dailyMinutesDown": {}
+    "time": 2183,
+    "timeDay": 1996,
+    "timeWeek": 2462,
+    "timeMonth": 2264,
+    "timeYear": 2183,
+    "dailyMinutesDown": {
+      "2026-11-17": 0
+    }
   },
   {
     "name": "Sign-in & accounts",
@@ -49,7 +51,7 @@
     "time": 420,
     "timeDay": 791,
     "timeWeek": 411,
-    "timeMonth": 401,
+    "timeMonth": 398,
     "timeYear": 420,
     "dailyMinutesDown": {}
   },
@@ -67,7 +69,7 @@
     "time": 432,
     "timeDay": 721,
     "timeWeek": 432,
-    "timeMonth": 414,
+    "timeMonth": 397,
     "timeYear": 432,
     "dailyMinutesDown": {}
   },
@@ -85,7 +87,7 @@
     "time": 315,
     "timeDay": 449,
     "timeWeek": 356,
-    "timeMonth": 305,
+    "timeMonth": 316,
     "timeYear": 315,
     "dailyMinutesDown": {}
   },
@@ -103,7 +105,7 @@
     "time": 650,
     "timeDay": 981,
     "timeWeek": 1234,
-    "timeMonth": 1141,
+    "timeMonth": 1109,
     "timeYear": 650,
     "dailyMinutesDown": {}
   },
@@ -121,7 +123,7 @@
     "time": 727,
     "timeDay": 1177,
     "timeWeek": 987,
-    "timeMonth": 996,
+    "timeMonth": 984,
     "timeYear": 727,
     "dailyMinutesDown": {}
   }
