@@ -22,19 +22,19 @@
     "url": "https://houseofweddings.ai/api/health/vendor",
     "icon": "https://icons.duckduckgo.com/ip3/houseofweddings.ai.ico",
     "slug": "vendor-pages",
-    "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "99.99%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 2183,
-    "timeDay": 1996,
-    "timeWeek": 2462,
-    "timeMonth": 2264,
-    "timeYear": 2183,
+    "status": "up",
+    "uptime": "99.99%",
+    "uptimeDay": "99.44%",
+    "uptimeWeek": "99.92%",
+    "uptimeMonth": "99.98%",
+    "uptimeYear": "99.99%",
+    "time": 2166,
+    "timeDay": 1866,
+    "timeWeek": 2340,
+    "timeMonth": 2204,
+    "timeYear": 2166,
     "dailyMinutesDown": {
-      "2026-11-17": 0
+      "2026-11-17": 8
     }
   },
   {
